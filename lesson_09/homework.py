@@ -5,20 +5,10 @@ exchange_rates = {
     "rates": {"USD": 1.00, "UAH": 40.00, "EUR": 0.9817, "GBP": 0.8495},
 }
 
-# uah, eur:
-# uah + (eur -> usd -> uah)
-# eur, uah:
-# eur + (uah -> usd -> eur)
-# uah, usd:
-# uah + (usd -> uah)
-# usd, uah:
-# usd + (uah -> usd)
-# eur, eur:
-# eur + eur
-
 
 @dataclass
-class DataPrice:
+class Price:
+
     amount: int or float
     currency: str
 
@@ -28,89 +18,66 @@ class DataPrice:
     def __str__(self) -> str:
         return f"Total prise is - {self.amount} {self.currency}"
 
-
-class Price:
-    def __init__(self, dataprice: "DataPrice") -> None:
-        self.price = dataprice
-
-    def __add__(self, other: "DataPrice") -> "DataPrice":
+    def __add__(self, other: "Price") -> "Price":
         # not convertation
-        if self.price.currency == other.price.currency:
-            return DataPrice(
-                round(self.price.amount + other.price.amount, 2), self.price.currency
-            )
+        if self.currency == other.currency:
+            return Price(round(self.amount + other.amount, 2), self.currency)
         # regular convertation
-        elif (
-            self.price.currency != other.price.currency
-            and other.price.currency == "USD"
-        ):
-            return DataPrice(
+        elif self.currency != other.currency and other.currency == "USD":
+            return Price(
                 round(
-                    self.price.amount
-                    + other.price.amount * exchange_rates["rates"][self.price.currency],
+                    self.amount + other.amount * exchange_rates["rates"][self.currency],
                     2,
                 ),
-                self.price.currency,
+                self.currency,
             )
         # double convertion
         else:
-            return DataPrice(
+            return Price(
                 round(
-                    self.price.amount
-                    + (
-                        other.price.amount
-                        / exchange_rates["rates"][other.price.currency]
-                    )
-                    * exchange_rates["rates"][self.price.currency],
+                    self.amount
+                    + (other.amount / exchange_rates["rates"][other.currency])
+                    * exchange_rates["rates"][self.currency],
                     2,
                 ),
-                self.price.currency,
+                self.currency,
             )
 
-    def __sub__(self, other: "DataPrice") -> "DataPrice":
+    def __sub__(self, other: "Price") -> "Price":
         # not convertation
-        if self.price.currency == other.price.currency:
-            return DataPrice(
-                round(self.price.amount - other.price.amount, 2), self.price.currency
-            )
+        if self.currency == other.currency:
+            return Price(round(self.amount - other.amount, 2), self.currency)
         # regular convertation
-        elif (
-            self.price.currency != other.price.currency
-            and other.price.currency == "USD"
-        ):
-            return DataPrice(
+        elif self.currency != other.currency and other.currency == "USD":
+            return Price(
                 round(
-                    self.price.amount
-                    - other.price.amount * exchange_rates["rates"][self.price.currency],
+                    self.amount - other.amount * exchange_rates["rates"][self.currency],
                     2,
                 ),
-                self.price.currency,
+                self.currency,
             )
         # double convertion
         else:
-            return DataPrice(
+            return Price(
                 round(
-                    self.price.amount
-                    - (
-                        other.price.amount
-                        / exchange_rates["rates"][other.price.currency]
-                    )
-                    * exchange_rates["rates"][self.price.currency],
+                    self.amount
+                    - (other.amount / exchange_rates["rates"][other.currency])
+                    * exchange_rates["rates"][self.currency],
                     2,
                 ),
-                self.price.currency,
+                self.currency,
             )
 
 
 def main():
-    a = DataPrice(1, "Eur")
-    b = DataPrice(40, "Usd")
+    a = Price(1, "Eur")
+    b = Price(40, "Usd")
 
-    a_2 = DataPrice(10, "usd")
-    b_2 = DataPrice(40, "UaH")
+    a_2 = Price(10, "usd")
+    b_2 = Price(40, "UaH")
 
-    total_price = Price(a) + Price(b)
-    total_price_2 = Price(a_2) - Price(b_2)
+    total_price = a + b
+    total_price_2 = a_2 - b_2
     print(total_price, "\n", total_price_2)
 
 
